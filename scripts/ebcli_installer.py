@@ -71,6 +71,7 @@ EXECUTABLE_WRAPPERS = {
     'py': """#!/usr/bin/env python
 import subprocess
 import sys
+import os
 
 
 def _exec_cmd(args):
@@ -92,7 +93,7 @@ def _exec_cmd(args):
     the return code of the subprocess to remain None. In all such cases, the
     wrapper will assume a failure and return a non-zero exit code.
     \"\"\"
-    p = subprocess.Popen(args)
+    p = subprocess.Popen(args, env=dict(PATH=os.environ['PATH']))  # run it in the virtual env that this script activated
     try:
         p.communicate()
     except KeyboardInterrupt:
@@ -664,6 +665,8 @@ def _exec_cmd(args, quiet):
     """
     Function invokes `subprocess.Popen` in the `shell=True` mode and returns
     the return code of the subprocess.
+    It ensures that the commands are run in the virtualenv activated by
+    `_activate_virtualenv`.
 
     :param args: the args to pass to `subprocess.Popen`
     :param quiet: Whether to avoid displaying output of the subprocess to
@@ -675,7 +678,8 @@ def _exec_cmd(args, quiet):
         ' '.join(args),
         stdout=stdout,
         stderr=stdout,
-        shell=True
+        shell=True,
+        env={'PATH': os.environ['PATH']}  # run it in the virtual env that this script activated
     )
 
     p.communicate()
